@@ -1,0 +1,35 @@
+{
+  "name": "nicodemus",
+  "version": "0.1.0",
+  "description": "Enterprise Educational AI Suite - Privacy-First Multi-Agent System for Schools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "type-check": "pnpm -r run type-check",
+    "lint": "pnpm -r run lint",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "modal:deploy": "modal deploy modal_app.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "education",
+    "ai",
+    "privacy",
+    "ferpa",
+    "schools",
+    "coppa",
+    "gdpr"
+  ],
+  "author": "Nicodemus Team",
+  "license": "PROPRIETARY"
+}

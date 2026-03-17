@@ -1,0 +1,9 @@
+packages:
+  # Applications
+  - 'apps/*'
+
+  # Shared libraries/packages
+  - 'packages/*'
+
+  # Edge applications
+  - 'edge/*'

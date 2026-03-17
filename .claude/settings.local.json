@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la \"C:\\\\Users\\\\johns\\\\.claude\\\\projects\\\\D--Claude-Home-Nicodemus\\\\memory\"\" 2>/dev/null || echo \"Memory directory not yet populated \")",
+      "Bash(ls -lh \"D:/Claude Home/Nicodemus\"/*.md)",
+      "Bash(find \"D:/Claude Home/Nicodemus\" -maxdepth 1 -name \"*.md\" -type f -exec ls -lh {})",
+      "Bash(cp README.md documentation/project-overview/)",
+      "Bash(cp SETUP_COMPLETE.md documentation/project-overview/)",
+      "Bash(cp ARCHITECTURE.md documentation/architecture/)",
+      "Bash(cp SECURITY.md documentation/security-compliance/)",
+      "Bash(cp implementation.md documentation/implementation/)",
+      "Bash(cp CLAUDE.md documentation/development-guides/)",
+      "Bash(cp INDEX.md documentation/development-guides/)",
+      "Bash(\"D:/Claude Home/Nicodemus/documentation/STRUCTURE.txt\":*)",
+      "Bash(ls -la *.md)"
+    ]
+  }
+}
