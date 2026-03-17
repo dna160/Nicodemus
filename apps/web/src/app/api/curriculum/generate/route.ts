@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       subject,
       gradingSystem,
       durationWeeks,
+      apiKey: process.env.CLAUDE_API_KEY,  // Pass API key from server to Modal
     });
 
     // 2. Save to Supabase (using admin client to bypass RLS)

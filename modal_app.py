@@ -45,8 +45,14 @@ web_app = FastAPI()
 @web_app.post("/generate_curriculum")
 async def generate_curriculum_endpoint(params: Dict[str, Any]):
     """REST endpoint for curriculum generation"""
+    # Get API key from request or environment
+    api_key = params.get("apiKey") or os.environ.get("CLAUDE_API_KEY")
+    if not api_key:
+        return {"error": "CLAUDE_API_KEY required"}
+
     # Map camelCase from frontend to snake_case for the function
     return await generate_curriculum.remote.aio(
+        api_key=api_key,
         title=params.get("title"),
         grade_level=params.get("gradeLevel", params.get("grade_level")),
         subject=params.get("subject"),
@@ -78,20 +84,20 @@ def api():
 # Helper: Call Claude API via HTTP
 # ============================================
 
-async def call_claude_api(messages: List[Dict[str, str]], max_tokens: int = 2000) -> str:
+async def call_claude_api(api_key: str, messages: List[Dict[str, str]], max_tokens: int = 2000) -> str:
     """
     Call Claude API directly via HTTP.
 
     Args:
+        api_key: Anthropic API key
         messages: List of message dicts with 'role' and 'content'
         max_tokens: Maximum tokens in response
 
     Returns:
         Response text from Claude
     """
-    api_key = os.environ.get("CLAUDE_API_KEY")
     if not api_key:
-        raise ValueError("CLAUDE_API_KEY environment variable not set")
+        raise ValueError("CLAUDE_API_KEY is required")
 
     headers = {
         "x-api-key": api_key,
@@ -120,6 +126,7 @@ async def call_claude_api(messages: List[Dict[str, str]], max_tokens: int = 2000
 
 @app.function(image=base_image, timeout=900)
 async def generate_curriculum(
+    api_key: str,
     title: str,
     grade_level: str,
     subject: str,
@@ -163,6 +170,7 @@ Format as JSON with keys: outline, objectives, activities, assessments, resource
 
     try:
         content = await call_claude_api(
+            api_key=api_key,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=4000
         )
@@ -179,7 +187,7 @@ Format as JSON with keys: outline, objectives, activities, assessments, resource
         return {"error": str(e), "raw_response": content if 'content' in locals() else ""}
 
 @app.function(image=base_image, timeout=600)
-async def generate_lesson_variants(lesson_content: str, grade_level: str) -> Dict[str, Dict[str, str]]:
+async def generate_lesson_variants(api_key: str, lesson_content: str, grade_level: str) -> Dict[str, Dict[str, str]]:
     """
     Generate differentiated lesson variants for multiple reading/learning levels.
 
@@ -206,6 +214,7 @@ Format as JSON: {{"basic": "...", "intermediate": "...", "advanced": "..."}}
 
     try:
         content = await call_claude_api(
+            api_key=api_key,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=2000
         )
@@ -222,7 +231,7 @@ Format as JSON: {{"basic": "...", "intermediate": "...", "advanced": "..."}}
 # ============================================
 
 @app.function(image=base_image, timeout=600)
-async def grade_assignment(submission_content: str, rubric: Dict[str, Any], subject: str) -> Dict[str, Any]:
+async def grade_assignment(api_key: str, submission_content: str, rubric: Dict[str, Any], subject: str) -> Dict[str, Any]:
     """
     Grade an assignment submission using a rubric.
 
@@ -253,6 +262,7 @@ Format as JSON: {{"score": X, "feedback": "...", "next_steps": "..."}}
 
     try:
         content = await call_claude_api(
+            api_key=api_key,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500
         )
@@ -269,7 +279,7 @@ Format as JSON: {{"score": X, "feedback": "...", "next_steps": "..."}}
 # ============================================
 
 @app.function(image=base_image, timeout=600)
-async def synthesize_class_insights(class_metrics: List[Dict[str, Any]], concept_id: str, class_size: int) -> Dict[str, Any]:
+async def synthesize_class_insights(api_key: str, class_metrics: List[Dict[str, Any]], concept_id: str, class_size: int) -> Dict[str, Any]:
     """
     Aggregate student metrics into actionable class insights.
 
@@ -306,6 +316,7 @@ Format as JSON: {{"prevalence": "high/medium/low", "patterns": "...", "intervent
 
     try:
         content = await call_claude_api(
+            api_key=api_key,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1000
         )

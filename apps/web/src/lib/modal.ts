@@ -22,6 +22,7 @@ export const modal = {
     subject: string;
     gradingSystem: string;
     durationWeeks: number;
+    apiKey?: string;  // Optional API key passed from backend
   }) {
     // In a production scenario, this would call the Modal webhook or project endpoint
     // For now, we point to the expected workspace/function path
