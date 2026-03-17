@@ -7,7 +7,15 @@ import { SUPABASE_TABLES, INNGEST_EVENTS } from 'shared';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, gradeLevel, subject, gradingSystem, durationWeeks } = body;
+    const { title, gradeLevel, subject, gradingSystem, durationWeeks, teacherId, classId } = body;
+    console.log('DEBUG: MODAL_API_URL is', process.env.MODAL_API_URL);
+
+    if (!teacherId) {
+      return NextResponse.json(
+        { success: false, error: 'teacherId is required' },
+        { status: 400 }
+      );
+    }
 
     // 1. Call Modal function to generate curriculum
     const curriculum = await modal.generateCurriculum({
@@ -22,6 +30,8 @@ export async function POST(req: NextRequest) {
     const { data: lesson, error } = await supabase
       .from(SUPABASE_TABLES.LESSONS)
       .insert({
+        teacher_id: teacherId,
+        class_id: classId || null,
         title,
         grade_level: gradeLevel,
         subject,

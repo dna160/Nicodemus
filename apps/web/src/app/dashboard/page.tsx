@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     gradeLevel: '5',
@@ -13,16 +15,36 @@ export default function Dashboard() {
     durationWeeks: 4
   });
 
+  useEffect(() => {
+    // Get current user from Supabase
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      } else {
+        // For demo: use a test teacher ID
+        setUserId('00000000-0000-0000-0000-000000000001');
+      }
+    };
+    getUser();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
 
+    if (!userId) {
+      alert('Unable to determine user ID');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/curriculum/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, teacherId: userId })
       });
 
       const data = await response.json();
