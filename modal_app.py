@@ -15,46 +15,92 @@ from typing import Any, Dict, List
 # Define the Modal app
 app = modal.App("nicodemus-ai")
 
+# Define secrets
+# Note: In production, you'd create these via 'modal secret create'
+# For this setup, we'll try to use a secret name if it exists, or look for env vars
+ai_secret = modal.Secret.from_dict({
+    "ANTHROPIC_API_KEY": os.environ.get("CLAUDE_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+})
+
 # Create a shared image with common dependencies
 base_image = modal.Image.debian_slim().pip_install(
     "anthropic==0.26.0",
     "pydantic==2.5.0",
     "python-dotenv==1.0.0",
+    "fastapi",
+    "uvicorn",
 )
+
+# ============================================
+# Web API (FastAPI Bridge)
+# ============================================
+
+from fastapi import FastAPI, Body, Request, HTTPException
+from fastapi.responses import JSONResponse
+
+web_app = FastAPI()
+
+@web_app.post("/generate_curriculum")
+async def generate_curriculum_endpoint(params: Dict[str, Any]):
+    """REST endpoint for curriculum generation"""
+    # Map camelCase from frontend to snake_case for the function
+    return generate_curriculum.remote(
+        title=params.get("title"),
+        grade_level=params.get("gradeLevel", params.get("grade_level")),
+        subject=params.get("subject"),
+        duration_weeks=params.get("durationWeeks", params.get("duration_weeks", 4)),
+        grading_system=params.get("gradingSystem", "local_alphabetical")
+    )
+
+@web_app.post("/generate_lesson_variants")
+async def generate_lesson_variants_endpoint(params: Dict[str, Any]):
+    return generate_lesson_variants.remote(
+        lesson_content=params.get("lesson_content"),
+        grade_level=params.get("grade_level")
+    )
+
+@web_app.post("/grade_assignment")
+async def grade_assignment_endpoint(params: Dict[str, Any]):
+    return grade_assignment.remote(
+        submission_content=params.get("submission_content"),
+        rubric=params.get("rubric"),
+        subject=params.get("subject")
+    )
+
+@app.function(image=base_image, secrets=[ai_secret])
+@modal.asgi_app()
+def api():
+    return web_app
 
 # ============================================
 # Teacher Assistant: Curriculum Generation
 # ============================================
 
-@app.function(image=base_image, timeout=900)
+@app.function(image=base_image, timeout=900, secrets=[ai_secret])
 def generate_curriculum(
     title: str,
     grade_level: str,
     subject: str,
-    standards: List[str],
     duration_weeks: int,
+    grading_system: str = "local_alphabetical",
 ) -> Dict[str, Any]:
     """
-    Generate a complete curriculum unit aligned to standards.
-    Uses Claude API to produce structured, standards-aligned content.
-
-    Args:
-        title: Unit title (e.g., "Fractions and Decimals")
-        grade_level: Grade level (e.g., "5")
-        subject: Subject area (e.g., "Math")
-        standards: List of standard codes (e.g., ["CCSS.MATH.5.NF.A.1"])
-        duration_weeks: Unit duration in weeks
-
-    Returns:
-        Dict containing:
-        - outline: Week-by-week lesson structure
-        - objectives: Learning objectives
-        - assessments: Formative and summative assessments
-        - resources: Required materials
+    Generate a complete curriculum unit adapted to the teacher's grading system.
+    Uses Claude Haiku for cost-efficient, fast curriculum generation.
     """
     from anthropic import Anthropic
 
     client = Anthropic()
+
+    # Map grading system to description
+    grading_descriptions = {
+        'local_alphabetical': 'Alphabetical scale (A+, A, A-, B+, B, etc.)',
+        'local_integer': 'Percentage scale (0-100)',
+        'national_ccss': 'Common Core State Standards (CCSS)',
+        'state_standards': 'State-specific education standards',
+        'international_ib': 'International Baccalaureate (IB)',
+    }
+    grading_desc = grading_descriptions.get(grading_system, grading_system)
 
     prompt = f"""
     Generate a comprehensive {duration_weeks}-week curriculum unit for:
@@ -62,13 +108,15 @@ def generate_curriculum(
     Title: {title}
     Grade Level: {grade_level}
     Subject: {subject}
-    Standards: {', '.join(standards)}
+    Grading System: {grading_desc}
+
+    IMPORTANT: Adapt all assessments and grading rubrics to the {grading_desc} system.
 
     Provide:
     1. Weekly lesson outline with learning objectives
     2. Daily activity suggestions
-    3. Formative assessment ideas
-    4. Summative assessment ideas
+    3. Formative assessment ideas (graded on {grading_desc})
+    4. Summative assessment with rubric (graded on {grading_desc})
     5. Required resources and materials
     6. Differentiation strategies for diverse learners
 
@@ -78,25 +126,19 @@ def generate_curriculum(
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=4000,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}]
     )
 
-    # Parse the response
     try:
-        result = json.loads(response.content[0].text)
-    except json.JSONDecodeError:
-        result = {"raw_response": response.content[0].text}
+        content = response.content[0].text
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        return json.loads(content)
+    except Exception:
+        return {"raw_response": response.content[0].text}
 
-    return result
-
-
-@app.function(image=base_image, timeout=600)
-def generate_lesson_variants(
-    lesson_content: str,
-    grade_level: str,
-) -> Dict[str, Dict[str, str]]:
+@app.function(image=base_image, timeout=600, secrets=[ai_secret])
+def generate_lesson_variants(lesson_content: str, grade_level: str) -> Dict[str, Dict[str, str]]:
     """
     Generate differentiated lesson variants for multiple reading/learning levels.
 
@@ -128,33 +170,21 @@ def generate_lesson_variants(
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=2000,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}]
     )
 
     try:
-        result = json.loads(response.content[0].text)
-    except json.JSONDecodeError:
-        result = {
-            "basic": response.content[0].text,
-            "intermediate": response.content[0].text,
-            "advanced": response.content[0].text,
-        }
-
-    return result
+        return json.loads(response.content[0].text)
+    except Exception:
+        return {"basic": response.content[0].text}
 
 
 # ============================================
 # Teacher Assistant: Grading & Feedback
 # ============================================
 
-@app.function(image=base_image, timeout=600)
-def grade_assignment(
-    submission_content: str,
-    rubric: Dict[str, Any],
-    subject: str,
-) -> Dict[str, Any]:
+@app.function(image=base_image, timeout=600, secrets=[ai_secret])
+def grade_assignment(submission_content: str, rubric: Dict[str, Any], subject: str) -> Dict[str, Any]:
     """
     Grade an assignment submission using a rubric.
 
@@ -171,7 +201,7 @@ def grade_assignment(
     client = Anthropic()
 
     prompt = f"""
-    Grade this {subject} assignment submission against the rubric.
+    Grade this {subject} assignment against the rubric:
 
     Submission:
     {submission_content}
@@ -190,33 +220,21 @@ def grade_assignment(
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=1500,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}]
     )
 
     try:
-        result = json.loads(response.content[0].text)
-    except json.JSONDecodeError:
-        result = {
-            "score": 0,
-            "feedback": response.content[0].text,
-            "next_steps": "Review with teacher",
-        }
-
-    return result
+        return json.loads(response.content[0].text)
+    except Exception:
+        return {"score": 0, "feedback": response.content[0].text}
 
 
 # ============================================
 # Teacher Assistant: Class Insights
 # ============================================
 
-@app.function(image=base_image, timeout=600)
-def synthesize_class_insights(
-    class_metrics: List[Dict[str, Any]],
-    concept_id: str,
-    class_size: int,
-) -> Dict[str, Any]:
+@app.function(image=base_image, timeout=600, secrets=[ai_secret])
+def synthesize_class_insights(class_metrics: List[Dict[str, Any]], concept_id: str, class_size: int) -> Dict[str, Any]:
     """
     Aggregate student metrics into actionable class insights.
 
@@ -258,22 +276,13 @@ def synthesize_class_insights(
     response = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=1000,
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+        messages=[{"role": "user", "content": prompt}]
     )
 
     try:
-        result = json.loads(response.content[0].text)
-    except json.JSONDecodeError:
-        result = {
-            "prevalence": "medium",
-            "patterns": response.content[0].text,
-            "interventions": [],
-            "flagged_students": [],
-        }
-
-    return result
+        return json.loads(response.content[0].text)
+    except Exception:
+        return {"prevalence": "medium", "patterns": response.content[0].text}
 
 
 # ============================================
