@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "inngest": "^0.17.0",
-    "@inngest/next": "^0.3.0",
     "@supabase/supabase-js": "^2.38.0",
     "axios": "^1.6.0",
     "shared": "workspace:*"

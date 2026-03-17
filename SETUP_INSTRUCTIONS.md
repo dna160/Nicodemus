@@ -57,9 +57,35 @@ cat .gitignore | grep .env
 
 ---
 
-## Step 3: Initialize Supabase Locally
+## Step 3: Initialize Supabase (Cloud-First)
 
-Supabase allows you to develop locally without hitting production:
+**If you don't have Docker:** Use cloud-first setup (recommended for solo dev)
+→ See `SETUP_CLOUD_FIRST.md` (no Docker required)
+
+**If you have Docker:** Use local Supabase
+
+### Option A: Cloud-First (No Docker) ✅ RECOMMENDED
+
+```bash
+# Link your Supabase project
+supabase link --project-ref cjxfuoudlrvpdbnjuqqy
+
+# Push migrations to cloud database
+supabase db push
+
+# Verify
+supabase db list tables
+```
+
+This applies your schema to your production Supabase instance. You develop directly against cloud.
+
+**Benefits:**
+- No Docker needed
+- Zero local overhead
+- Same schema everywhere (no parity issues)
+- Instant deployment (already in cloud)
+
+### Option B: Local Supabase (With Docker)
 
 ```bash
 # Start local Supabase stack (Docker required)
@@ -81,20 +107,24 @@ This spins up a local PostgreSQL database with all tables from `supabase/migrati
 
 ---
 
-## Step 4: Update `.env` for Local Development (Optional)
+## Step 4: `.env` Configuration
 
-If you want to test locally before deploying:
+Your `.env` file already has production Supabase credentials:
 
-```bash
-# After running `supabase start`, it prints local credentials
-# Update .env with local Supabase URL and keys (optional)
-
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<local-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<local-service-role-key>
+```
+NEXT_PUBLIC_SUPABASE_URL=https://cjxfuoudlrvpdbnjuqqy.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
-To switch back to production, revert to your original `.env`.
+✅ **Cloud-First (recommended):** Keep these as-is. Develop against cloud.
+
+**If using Local Supabase (Docker):** After running `supabase start`, update temporarily:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<local-anon-key>
+```
+Then switch back to production credentials when done testing.
 
 ---
 
