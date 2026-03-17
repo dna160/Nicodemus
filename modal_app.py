@@ -40,7 +40,8 @@ web_app = FastAPI()
 async def generate_curriculum_endpoint(params: Dict[str, Any]):
     """REST endpoint for curriculum generation"""
     # Map camelCase from frontend to snake_case for the function
-    return generate_curriculum.remote(
+    # Use .remote.aio() for async context (FastAPI is async)
+    return await generate_curriculum.remote.aio(
         title=params.get("title"),
         grade_level=params.get("gradeLevel", params.get("grade_level")),
         subject=params.get("subject"),
@@ -50,14 +51,14 @@ async def generate_curriculum_endpoint(params: Dict[str, Any]):
 
 @web_app.post("/generate_lesson_variants")
 async def generate_lesson_variants_endpoint(params: Dict[str, Any]):
-    return generate_lesson_variants.remote(
+    return await generate_lesson_variants.remote.aio(
         lesson_content=params.get("lesson_content"),
         grade_level=params.get("grade_level")
     )
 
 @web_app.post("/grade_assignment")
 async def grade_assignment_endpoint(params: Dict[str, Any]):
-    return grade_assignment.remote(
+    return await grade_assignment.remote.aio(
         submission_content=params.get("submission_content"),
         rubric=params.get("rubric"),
         subject=params.get("subject")
