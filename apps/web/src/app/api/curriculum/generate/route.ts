@@ -7,29 +7,26 @@ import { SUPABASE_TABLES, INNGEST_EVENTS } from 'shared';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, gradeLevel, subject, standards, durationWeeks } = body;
+    const { title, gradeLevel, subject, gradingSystem, durationWeeks } = body;
 
     // 1. Call Modal function to generate curriculum
     const curriculum = await modal.generateCurriculum({
       title,
       gradeLevel,
       subject,
-      standards,
+      gradingSystem,
       durationWeeks,
     });
 
     // 2. Save to Supabase
-    // Note: In Phase 1a, we just save the basic lesson. 
-    // In a real app, we'd handle teacher auth and get teacherId.
     const { data: lesson, error } = await supabase
       .from(SUPABASE_TABLES.LESSONS)
       .insert({
         title,
         grade_level: gradeLevel,
         subject,
-        standards_aligned: standards,
+        grading_system: gradingSystem,
         content: JSON.stringify(curriculum),
-        // teacher_id is ideally from session
       })
       .select()
       .single();

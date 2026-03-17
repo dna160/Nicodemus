@@ -2,6 +2,17 @@
  * Modal Client Helper
  * Note: Modal functions are typically Python-based.
  * In this lean stack, we call them via their served endpoints or a bridge.
+ *
+ * All Modal functions use Claude Haiku for cost efficiency and speed:
+ * - Curriculum generation: claude-haiku-4-5-20251001
+ * - Lesson variants: claude-haiku-4-5-20251001
+ * - Assignment grading: claude-haiku-4-5-20251001
+ * - Class insights: claude-haiku-4-5-20251001
+ *
+ * Haiku is ideal for Nicodemus because:
+ * - Fast responses (curriculum in ~5-10 seconds)
+ * - Low cost (~$0.01 per curriculum generation)
+ * - Sufficient capability for structured task (lesson planning, grading)
  */
 
 export const modal = {
@@ -9,7 +20,7 @@ export const modal = {
     title: string;
     gradeLevel: string;
     subject: string;
-    standards: string[];
+    gradingSystem: string;
     durationWeeks: number;
   }) {
     // In a production scenario, this would call the Modal webhook or project endpoint

@@ -9,7 +9,7 @@ export default function Dashboard() {
     title: '',
     gradeLevel: '5',
     subject: 'Math',
-    standards: '',
+    gradingSystem: 'local_alphabetical',
     durationWeeks: 4
   });
 
@@ -22,10 +22,7 @@ export default function Dashboard() {
       const response = await fetch('/api/curriculum/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          standards: formData.standards.split(',').map(s => s.trim())
-        })
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
@@ -99,13 +96,35 @@ export default function Dashboard() {
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Standards (Comma separated)</label>
-              <input 
-                value={formData.standards}
-                onChange={e => setFormData({...formData, standards: e.target.value})}
-                placeholder="CCSS.MATH.5.NF.A.1, CCSS.MATH.5.NF.A.2" 
-                className="w-full p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-transparent"
-              />
+              <label className="text-sm font-medium">Grading System</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                {[
+                  { id: 'local_alphabetical', label: 'Alphabetical (A-F)', desc: 'Standard US grading: A+ through F' },
+                  { id: 'local_integer', label: 'Percentage (0-100)', desc: '100% perfect, 0% failing' },
+                  { id: 'national_ccss', label: 'National Standards (CCSS)', desc: 'Common Core State Standards' },
+                  { id: 'state_standards', label: 'State Standards', desc: "Your state's education standards" },
+                  { id: 'international_ib', label: 'International (IB)', desc: 'International Baccalaureate' }
+                ].map((system) => (
+                  <label key={system.id} className={`flex items-start p-3 rounded-lg border cursor-pointer transition-all ${
+                    formData.gradingSystem === system.id 
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                  }`}>
+                    <input 
+                      type="radio"
+                      name="gradingSystem"
+                      value={system.id}
+                      checked={formData.gradingSystem === system.id}
+                      onChange={e => setFormData({...formData, gradingSystem: e.target.value})}
+                      className="mt-1 mr-3"
+                    />
+                    <div>
+                      <div className="text-sm font-semibold">{system.label}</div>
+                      <div className="text-xs text-neutral-500">{system.desc}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
             <button 
               disabled={loading}
