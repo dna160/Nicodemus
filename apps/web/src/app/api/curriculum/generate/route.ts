@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { modal } from '@/lib/modal';
 import { inngest } from '@/lib/inngest';
 import { SUPABASE_TABLES, INNGEST_EVENTS } from 'shared';
@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
       durationWeeks,
     });
 
-    // 2. Save to Supabase
-    const { data: lesson, error } = await supabase
+    // 2. Save to Supabase (using admin client to bypass RLS)
+    const { data: lesson, error } = await supabaseAdmin
       .from(SUPABASE_TABLES.LESSONS)
       .insert({
         teacher_id: teacherId,
