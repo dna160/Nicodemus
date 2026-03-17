@@ -15,12 +15,8 @@ from typing import Any, Dict, List
 # Define the Modal app
 app = modal.App("nicodemus-ai")
 
-# Define secrets
-# Note: In production, you'd create these via 'modal secret create'
-# For this setup, we'll try to use a secret name if it exists, or look for env vars
-ai_secret = modal.Secret.from_dict({
-    "ANTHROPIC_API_KEY": os.environ.get("CLAUDE_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-})
+# ANTHROPIC_API_KEY is automatically passed via Modal environment from .env file
+# No need to explicitly define secrets - Anthropic client will use the environment variable
 
 # Create a shared image with common dependencies
 base_image = modal.Image.debian_slim().pip_install(
@@ -67,7 +63,7 @@ async def grade_assignment_endpoint(params: Dict[str, Any]):
         subject=params.get("subject")
     )
 
-@app.function(image=base_image, secrets=[ai_secret])
+@app.function(image=base_image)
 @modal.asgi_app()
 def api():
     return web_app
@@ -76,7 +72,7 @@ def api():
 # Teacher Assistant: Curriculum Generation
 # ============================================
 
-@app.function(image=base_image, timeout=900, secrets=[ai_secret])
+@app.function(image=base_image, timeout=900)
 def generate_curriculum(
     title: str,
     grade_level: str,
@@ -137,7 +133,7 @@ def generate_curriculum(
     except Exception:
         return {"raw_response": response.content[0].text}
 
-@app.function(image=base_image, timeout=600, secrets=[ai_secret])
+@app.function(image=base_image, timeout=600)
 def generate_lesson_variants(lesson_content: str, grade_level: str) -> Dict[str, Dict[str, str]]:
     """
     Generate differentiated lesson variants for multiple reading/learning levels.
@@ -183,7 +179,7 @@ def generate_lesson_variants(lesson_content: str, grade_level: str) -> Dict[str,
 # Teacher Assistant: Grading & Feedback
 # ============================================
 
-@app.function(image=base_image, timeout=600, secrets=[ai_secret])
+@app.function(image=base_image, timeout=600)
 def grade_assignment(submission_content: str, rubric: Dict[str, Any], subject: str) -> Dict[str, Any]:
     """
     Grade an assignment submission using a rubric.
@@ -233,7 +229,7 @@ def grade_assignment(submission_content: str, rubric: Dict[str, Any], subject: s
 # Teacher Assistant: Class Insights
 # ============================================
 
-@app.function(image=base_image, timeout=600, secrets=[ai_secret])
+@app.function(image=base_image, timeout=600)
 def synthesize_class_insights(class_metrics: List[Dict[str, Any]], concept_id: str, class_size: int) -> Dict[str, Any]:
     """
     Aggregate student metrics into actionable class insights.
