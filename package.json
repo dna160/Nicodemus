@@ -4,18 +4,26 @@
   "description": "Enterprise Educational AI Suite - Privacy-First Multi-Agent System for Schools",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "edge/*"
+  ],
   "scripts": {
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
     "type-check": "pnpm -r run type-check",
     "lint": "pnpm -r run lint",
-    "db:push": "supabase db push",
-    "db:pull": "supabase db pull",
-    "modal:deploy": "modal deploy modal_app.py"
+    "db:push": "pnpm exec supabase db push",
+    "db:pull": "pnpm exec supabase db pull",
+    "db:status": "pnpm exec supabase status",
+    "modal:deploy": "modal deploy modal_app.py",
+    "setup": "pnpm install && pnpm run type-check"
   },
   "devDependencies": {
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "supabase": "^1.131.0"
   },
   "engines": {
     "node": ">=18.0.0",
