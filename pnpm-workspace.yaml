@@ -7,3 +7,9 @@ packages:
 
   # Edge applications
   - 'edge/*'
+allowBuilds:
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  supabase: true
+  unrs-resolver: true

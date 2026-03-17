@@ -42,6 +42,19 @@ export const ConceptStruggleEventSchema = z.object({
 export type ConceptStruggleEvent = z.infer<typeof ConceptStruggleEventSchema>;
 
 // ============================================
+// Grading Standards (Teacher-Friendly)
+// ============================================
+
+export const GradingSystemSchema = z.enum([
+  'local_alphabetical',  // A+, A, A-, B+, B, B-, C+, C, C-, D, F
+  'local_integer',       // 100-90 (A), 89-80 (B), 79-70 (C), 69-60 (D), 0-59 (F)
+  'national_ccss',       // Common Core State Standards
+  'state_standards',     // State-specific standards
+  'international_ib',    // International Baccalaureate
+]);
+export type GradingSystem = z.infer<typeof GradingSystemSchema>;
+
+// ============================================
 // Curriculum & Lessons
 // ============================================
 
@@ -51,7 +64,7 @@ export const LessonSchema = z.object({
   title: z.string(),
   gradeLevel: z.string(),
   subject: z.string(),
-  standardsAligned: z.array(z.string()),
+  gradingSystem: GradingSystemSchema,
   content: z.string(),
   variants: z.array(z.object({
     readingLevel: z.string(),

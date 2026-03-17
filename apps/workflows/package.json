@@ -12,17 +12,18 @@
     "inngest:dev": "inngest-cli@latest dev"
   },
   "dependencies": {
-    "inngest": "^0.17.0",
     "@supabase/supabase-js": "^2.38.0",
     "axios": "^1.6.0",
+    "dotenv": "^17.3.1",
+    "inngest": "^3.0.0",
     "shared": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.3.0",
     "@types/node": "^20.0.0",
-    "tsx": "^4.6.0",
-    "eslint": "^8.54.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
-    "@typescript-eslint/parser": "^6.13.0"
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "tsx": "^4.6.0",
+    "typescript": "^5.3.0"
   }
 }

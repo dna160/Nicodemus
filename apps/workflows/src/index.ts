@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Inngest } from 'inngest';
 import { serve } from 'inngest/next';
 import { createClient } from '@supabase/supabase-js';

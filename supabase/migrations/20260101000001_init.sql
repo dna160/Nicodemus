@@ -5,13 +5,31 @@
 -- Enable RLS & Required Extensions
 -- ============================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgtrgm"; -- For full-text search
+CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- For full-text search
+
+-- Clean up existing tables for a fresh start (Initialization only)
+DROP TABLE IF EXISTS audit_log CASCADE;
+DROP TABLE IF EXISTS communication_log CASCADE;
+DROP TABLE IF EXISTS parent_notifications CASCADE;
+DROP TABLE IF EXISTS student_metrics CASCADE;
+DROP TABLE IF EXISTS submissions CASCADE;
+DROP TABLE IF EXISTS assignments CASCADE;
+DROP TABLE IF EXISTS lesson_variants CASCADE;
+DROP TABLE IF EXISTS lessons CASCADE;
+DROP TABLE IF EXISTS student_parents CASCADE;
+DROP TABLE IF EXISTS enrollments CASCADE;
+DROP TABLE IF EXISTS classes CASCADE;
+DROP TABLE IF EXISTS parents CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
+DROP TABLE IF EXISTS teachers CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS schools CASCADE;
 
 -- ============================================
 -- Core Identity Tables
 -- ============================================
 
-CREATE TABLE schools (
+CREATE TABLE IF NOT EXISTS schools (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   district TEXT,
@@ -22,7 +40,7 @@ CREATE TABLE schools (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
@@ -33,7 +51,7 @@ CREATE TABLE users (
   UNIQUE(school_id, email)
 );
 
-CREATE TABLE teachers (
+CREATE TABLE IF NOT EXISTS teachers (
   id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   grade_levels TEXT[], -- e.g., ['5', '6']
   subjects TEXT[], -- e.g., ['math', 'science']
@@ -41,14 +59,14 @@ CREATE TABLE teachers (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE students (
+CREATE TABLE IF NOT EXISTS students (
   id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   grade_level TEXT NOT NULL,
   date_of_birth DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE parents (
+CREATE TABLE IF NOT EXISTS parents (
   id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   phone TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -58,7 +76,7 @@ CREATE TABLE parents (
 -- Curriculum & Classes
 -- ============================================
 
-CREATE TABLE classes (
+CREATE TABLE IF NOT EXISTS classes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
   teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
@@ -70,7 +88,7 @@ CREATE TABLE classes (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE enrollments (
+CREATE TABLE IF NOT EXISTS enrollments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
   student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
@@ -79,7 +97,7 @@ CREATE TABLE enrollments (
   UNIQUE(class_id, student_id)
 );
 
-CREATE TABLE student_parents (
+CREATE TABLE IF NOT EXISTS student_parents (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   parent_id UUID NOT NULL REFERENCES parents(id) ON DELETE CASCADE,
@@ -89,7 +107,7 @@ CREATE TABLE student_parents (
   UNIQUE(student_id, parent_id)
 );
 
-CREATE TABLE lessons (
+CREATE TABLE IF NOT EXISTS lessons (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
   class_id UUID REFERENCES classes(id) ON DELETE SET NULL,
@@ -102,7 +120,7 @@ CREATE TABLE lessons (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE lesson_variants (
+CREATE TABLE IF NOT EXISTS lesson_variants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
   reading_level TEXT NOT NULL, -- e.g., 'basic', 'intermediate', 'advanced'
@@ -114,7 +132,7 @@ CREATE TABLE lesson_variants (
 -- Assignments & Submissions
 -- ============================================
 
-CREATE TABLE assignments (
+CREATE TABLE IF NOT EXISTS assignments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
   teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
@@ -127,7 +145,7 @@ CREATE TABLE assignments (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE submissions (
+CREATE TABLE IF NOT EXISTS submissions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   assignment_id UUID NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
   student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
@@ -145,7 +163,7 @@ CREATE TABLE submissions (
 -- Student Behavior & Metrics (Sanitized)
 -- ============================================
 
-CREATE TABLE student_metrics (
+CREATE TABLE IF NOT EXISTS student_metrics (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
   concept_id TEXT NOT NULL, -- e.g., 'algebra_linear_equations'
@@ -161,7 +179,7 @@ CREATE TABLE student_metrics (
 -- Parent Communication
 -- ============================================
 
-CREATE TABLE parent_notifications (
+CREATE TABLE IF NOT EXISTS parent_notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   parent_id UUID NOT NULL REFERENCES parents(id) ON DELETE CASCADE,
   student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
@@ -177,7 +195,7 @@ CREATE TABLE parent_notifications (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE communication_log (
+CREATE TABLE IF NOT EXISTS communication_log (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
   parent_id UUID NOT NULL REFERENCES parents(id) ON DELETE CASCADE,
@@ -191,7 +209,7 @@ CREATE TABLE communication_log (
 -- Audit & Compliance
 -- ============================================
 
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   action TEXT NOT NULL,
