@@ -12,7 +12,16 @@ export const SUPABASE_TABLES = {
   SUBMISSIONS: 'submissions',
   STUDENT_METRICS: 'student_metrics',
   PARENT_NOTIFICATIONS: 'parent_notifications',
+  COMMUNICATION_LOG: 'communication_log',
+  STUDENT_PARENTS: 'student_parents',
   AUDIT_LOG: 'audit_log',
+  SUBSTITUTES: 'substitutes',
+  ABSENCES: 'absences',
+  SUBSTITUTE_AVAILABILITY: 'substitute_availability',
+  SUBSTITUTE_ASSIGNMENTS: 'substitute_assignments',
+  SUBSTITUTE_FEEDBACK: 'substitute_feedback',
+  INVENTORY: 'inventory',
+  INVENTORY_USAGE: 'inventory_usage',
 } as const;
 
 export const INNGEST_EVENTS = {
@@ -21,6 +30,12 @@ export const INNGEST_EVENTS = {
   MILESTONE_ACHIEVED: 'student/milestone_achieved',
   TEACHER_ABSENCE: 'teacher/absence',
   PARENT_NOTIFICATION_TRIGGERED: 'parent/notification_triggered',
+  PARENT_NOTIFICATION_APPROVED: 'parent/notification_approved',
+  WEEKLY_DIGEST_TRIGGERED: 'parent/weekly_digest_triggered',
+  ABSENCE_CREATED: 'erp/absence_created',
+  SUBSTITUTE_INVITATION_SENT: 'erp/substitute_invitation_sent',
+  SUBSTITUTE_ACCEPTED: 'erp/substitute_accepted',
+  SUBSTITUTE_ASSIGNMENT_COMPLETED: 'erp/substitute_assignment_completed',
 } as const;
 
 export const MODAL_FUNCTIONS = {
@@ -28,7 +43,39 @@ export const MODAL_FUNCTIONS = {
   GENERATE_LESSON_VARIANTS: 'generate_lesson_variants',
   GRADE_ASSIGNMENT: 'grade_assignment',
   SYNTHESIZE_CLASS_INSIGHTS: 'synthesize_class_insights',
+  GENERATE_PARENT_EMAIL: 'generate_parent_email',
+  GENERATE_SUB_LESSON_PLAN: 'generate_sub_lesson_plan',
 } as const;
+
+// ERP: Substitute assignment statuses
+export const SUBSTITUTE_ASSIGNMENT_STATUS = {
+  INVITED: 'invited',       // Invitation email sent, awaiting response
+  ACCEPTED: 'accepted',     // Sub confirmed availability
+  DECLINED: 'declined',     // Sub declined the assignment
+  COMPLETED: 'completed',   // Absence completed, awaiting feedback
+} as const;
+
+export type SubstituteAssignmentStatus = typeof SUBSTITUTE_ASSIGNMENT_STATUS[keyof typeof SUBSTITUTE_ASSIGNMENT_STATUS];
+
+// PRM: Notification types supported by the parent email generator
+export const NOTIFICATION_TYPES = {
+  PROGRESS: 'progress',     // Weekly progress update
+  ALERT: 'alert',           // Concern requiring parent attention
+  MILESTONE: 'milestone',   // Achievement / celebration
+  MANUAL: 'manual',         // Teacher-initiated general message
+} as const;
+
+export type NotificationType = typeof NOTIFICATION_TYPES[keyof typeof NOTIFICATION_TYPES];
+
+// PRM: Lifecycle status for parent notifications (HITL workflow)
+export const NOTIFICATION_STATUS = {
+  DRAFT: 'draft',           // AI-generated, awaiting teacher review
+  APPROVED: 'approved',     // Teacher approved, ready to send
+  SENT: 'sent',             // Delivered to parent
+  REJECTED: 'rejected',     // Teacher discarded the draft
+} as const;
+
+export type NotificationStatus = typeof NOTIFICATION_STATUS[keyof typeof NOTIFICATION_STATUS];
 
 export const CONCEPT_STRUGGLE_THRESHOLD_SECONDS = 180; // 3 minutes
 

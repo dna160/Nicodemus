@@ -50,16 +50,25 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    // 3. Trigger Inngest workflow
-    await inngest.send({
-      name: INNGEST_EVENTS.CURRICULUM_PUBLISHED,
-      data: {
-        teacherId: lesson.teacher_id, // Ensure this falls back if null
-        lessonId: lesson.id,
-        classId: body.classId || 'default-class',
-        requiredResources: curriculum.resources || [],
+    // 3. Trigger Inngest workflow (non-blocking - for homework generation)
+    if (process.env.INNGEST_EVENT_KEY) {
+      try {
+        await inngest.send({
+          name: INNGEST_EVENTS.CURRICULUM_PUBLISHED,
+          data: {
+            teacherId: lesson.teacher_id, // Ensure this falls back if null
+            lessonId: lesson.id,
+            classId: body.classId || 'default-class',
+            requiredResources: curriculum.resources || [],
+          }
+        });
+      } catch (inngestError: any) {
+        // Log but don't fail - curriculum is already saved
+        console.warn('Inngest trigger failed (non-blocking):', inngestError.message);
       }
-    });
+    } else {
+      console.warn('INNGEST_EVENT_KEY not configured - skipping homework generation trigger');
+    }
 
     return NextResponse.json({ success: true, lesson });
   } catch (error: any) {
