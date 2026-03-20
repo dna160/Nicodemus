@@ -1,0 +1,30 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Next.js Dashboard",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:\\Users\\johns\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.cjs", "-C", "apps/web", "dev"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "Inngest Dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-C", "apps/workflows", "inngest:dev"],
+      "port": 8288
+    },
+    {
+      "name": "Workflows Watcher",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-C", "apps/workflows", "dev"],
+      "port": null
+    },
+    {
+      "name": "Modal Logs",
+      "runtimeExecutable": "modal",
+      "runtimeArgs": ["logs", "modal_app.py", "--follow"],
+      "port": null
+    }
+  ]
+}

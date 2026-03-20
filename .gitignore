@@ -60,3 +60,6 @@ supabase/seed.sql
 # Temporary
 *.tmp
 *.swp
+
+.vercel
+.env*.local
