@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { inngest } from '@/lib/inngest';
 import {
   SUPABASE_TABLES,
+
+export const dynamic = 'force-dynamic';
   INNGEST_EVENTS,
   DOCUMENT_TYPES,
 } from 'shared';

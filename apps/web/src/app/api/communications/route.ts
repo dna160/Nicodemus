@@ -4,6 +4,8 @@ import { modal } from '@/lib/modal';
 import { inngest } from '@/lib/inngest';
 import {
   SUPABASE_TABLES,
+
+export const dynamic = 'force-dynamic';
   INNGEST_EVENTS,
   NOTIFICATION_STATUS,
   NOTIFICATION_TYPES,

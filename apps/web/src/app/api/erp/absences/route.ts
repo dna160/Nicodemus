@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { inngest } from '@/lib/inngest';
 import { SUPABASE_TABLES, INNGEST_EVENTS } from 'shared';
 
+export const dynamic = 'force-dynamic';
+
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

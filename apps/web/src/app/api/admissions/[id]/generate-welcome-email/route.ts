@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { modal } from '@/lib/modal';
 import { SUPABASE_TABLES, NOTIFICATION_STATUS } from 'shared';
 
+export const dynamic = 'force-dynamic';
+
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

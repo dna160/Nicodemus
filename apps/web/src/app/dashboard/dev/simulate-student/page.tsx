@@ -14,6 +14,8 @@ import { simulateStudySession } from "@/lib/simulator/engine";
 import type { SimulationConfig, SimulationResult } from "@/lib/simulator/types";
 import "./page.css";
 
+export const dynamic = 'force-dynamic';
+
 interface SubmissionResult {
   success: boolean;
   metric_ids?: string[];

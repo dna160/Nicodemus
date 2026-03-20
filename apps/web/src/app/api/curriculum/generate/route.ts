@@ -4,6 +4,8 @@ import { modal } from '@/lib/modal';
 import { inngest } from '@/lib/inngest';
 import { SUPABASE_TABLES, INNGEST_EVENTS } from 'shared';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
