@@ -3,18 +3,18 @@
   "outputDirectory": "apps/web/.next",
   "framework": "nextjs",
   "installCommand": "pnpm install",
-  "env": [
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "MODAL_API_URL",
-    "CLAUDE_API_KEY",
-    "INNGEST_EVENT_KEY",
-    "INNGEST_SIGNING_KEY",
-    "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
-  ],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+    "MODAL_API_URL": "@modal_api_url",
+    "CLAUDE_API_KEY": "@claude_api_key",
+    "INNGEST_EVENT_KEY": "@inngest_event_key",
+    "INNGEST_SIGNING_KEY": "@inngest_signing_key",
+    "STRIPE_SECRET_KEY": "@stripe_secret_key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@next_public_stripe_publishable_key"
+  },
   "regions": ["sfo1"],
   "functions": {
     "apps/web/src/app/api/**/*.ts": {
