@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Enterprise Educational AI Suite",
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function RootLayout({
   children,
 }: Readonly<{
