@@ -1,0 +1,4 @@
+{
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && export NODE_ENV=production && cd packages/shared && pnpm run build && cd ../../apps/web && pnpm run build"
+}
