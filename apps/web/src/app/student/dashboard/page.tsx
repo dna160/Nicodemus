@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DOCUMENT_TYPE_LABELS, type DocumentType } from 'shared';
 import { DocumentUploadForm } from '@/components/document-upload-form';
+import { NotificationDropdown } from '@/components/notification-dropdown';
 import {
   Home, BookOpen, BarChart2, FileText, Bell,
   Search, Mic, ChevronRight, CheckSquare,
@@ -1182,10 +1183,7 @@ export default function StudentDashboardPage() {
           <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors">
             <Search size={18} />
           </button>
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white relative transition-colors">
-            <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
+          <NotificationDropdown userId={studentId} userRole="student" />
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold select-none">
             {initials}
           </div>

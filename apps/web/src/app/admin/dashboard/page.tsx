@@ -6,9 +6,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   LayoutDashboard, GraduationCap, Users, UserPlus, CreditCard,
-  Search, Bell, Mic, ChevronDown, ChevronRight, MoreVertical,
+  Search, Mic, ChevronDown, ChevronRight, MoreVertical,
 } from 'lucide-react';
 import { NicodemusAiModal } from '@/components/nicodemus-ai-modal';
+import { NotificationDropdown } from '@/components/notification-dropdown';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1103,6 +1104,7 @@ const DEMO_SCHOOL_ID = '00000000-0000-0000-0000-000000000001';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab]       = useState<Tab>('overview');
   const [schoolId, setSchoolId]         = useState<string>(DEMO_SCHOOL_ID);
+  const [userId, setUserId]             = useState<string>('00000000-0000-0000-0000-000000000002');
   const [activatedTabs, setActivatedTabs] = useState<Set<Tab>>(new Set(['overview']));
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
@@ -1112,6 +1114,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const meta = data?.user?.user_metadata;
+      if (data?.user?.id) setUserId(data.user.id);
       if (meta?.school_id) setSchoolId(meta.school_id);
       else if (data?.user?.app_metadata?.school_id) setSchoolId(data.user.app_metadata.school_id);
     });
@@ -1162,10 +1165,7 @@ export default function AdminDashboard() {
           <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors">
             <Search size={18} />
           </button>
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white relative transition-colors">
-            <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-          </button>
+          <NotificationDropdown userId={userId} userRole="admin" />
           <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-bold select-none">
             A
           </div>
