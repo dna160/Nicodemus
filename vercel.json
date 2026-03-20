@@ -1,5 +1,5 @@
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "cd packages/shared && pnpm run build && cd ../../apps/web && pnpm run build",
+  "buildCommand": "export NODE_ENV=production && cd packages/shared && pnpm run build && cd ../../apps/web && pnpm run build",
   "outputDirectory": "apps/web/.next"
 }
