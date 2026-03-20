@@ -108,7 +108,7 @@ Generate comprehensive teaching assistance materials for this specific lesson da
       "relevance": "string — 1-2 sentences on why this is useful for this lesson",
       "type": "journal" | "book" | "standards" | "website"
     }
-    // provide 4-6 references mixing journals, books, and standards documents
+    // provide 3-4 references mixing journals, books, and standards documents
   ],
   "videoSources": [
     {
@@ -120,7 +120,7 @@ Generate comprehensive teaching assistance materials for this specific lesson da
       "description": "string — 2-3 sentences on content and how it supports the lesson",
       "platform": "YouTube" | "Khan Academy" | "PBS Learning Media" | "National Geographic" | "TED-Ed" | "Other"
     }
-    // provide 3-5 videos appropriate for Grade ${gradeLevel} students
+    // provide 2-3 videos appropriate for Grade ${gradeLevel} students
   ],
   "teachingTips": [
     {
@@ -128,7 +128,7 @@ Generate comprehensive teaching assistance materials for this specific lesson da
       "rationale": "string — the pedagogical reasoning behind it",
       "timing": "before" | "during" | "after"
     }
-    // provide 4-6 tips covering before/during/after
+    // provide 3-4 tips covering before/during/after
   ],
   "activityGuides": [
     {
@@ -194,8 +194,8 @@ export async function POST(req: NextRequest) {
     const prompt  = buildPrompt(curriculumTitle, subject, gradeLevel, dayLabel, dayTitle, keyTopics, activities);
 
     const message = await client.messages.create({
-      model:      'claude-sonnet-4-5',
-      max_tokens: 4096,
+      model:      'claude-sonnet-4-6',
+      max_tokens: 8096,
       messages:   [{ role: 'user', content: prompt }],
     });
 
@@ -205,9 +205,30 @@ export async function POST(req: NextRequest) {
       .map((c) => (c as { type: 'text'; text: string }).text)
       .join('');
 
-    // Parse JSON — strip any accidental markdown fences
-    const jsonText = rawText.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
-    const materials: Partial<TeachingMaterials> = JSON.parse(jsonText);
+    // Strip markdown fences if present
+    let jsonText = rawText.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+
+    // Attempt parse; if truncated, try to recover a partial object
+    let materials: Partial<TeachingMaterials>;
+    try {
+      materials = JSON.parse(jsonText);
+    } catch {
+      // Truncation recovery: close any open arrays/objects so JSON.parse can succeed
+      const stack: string[] = [];
+      for (const ch of jsonText) {
+        if (ch === '{') stack.push('}');
+        else if (ch === '[') stack.push(']');
+        else if ((ch === '}' || ch === ']') && stack[stack.length - 1] === ch) stack.pop();
+      }
+      // Drop trailing incomplete string/value before closing
+      const trimmed = jsonText.replace(/,\s*$/, '').replace(/"[^"]*$/, '""');
+      const repaired = trimmed + stack.reverse().join('');
+      try {
+        materials = JSON.parse(repaired);
+      } catch {
+        throw new Error(`Claude returned malformed JSON. Raw: ${jsonText.slice(0, 200)}`);
+      }
+    }
 
     const result: TeachingMaterials = {
       dayLabel:           dayLabel   || '',

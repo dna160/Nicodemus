@@ -62,8 +62,8 @@ Output ONLY valid JSON — an array of 6-10 reference objects:
 Include a mix of: the primary textbook for this grade/subject, national curriculum standards (e.g. Common Core, NGSS), 2-3 teacher resource guides, and 1-2 student-appropriate reference sites. All entries must be real, verifiable works.`;
 
     const message = await client.messages.create({
-      model:      'claude-sonnet-4-5',
-      max_tokens: 2048,
+      model:      'claude-sonnet-4-6',
+      max_tokens: 6000,
       messages:   [{ role: 'user', content: prompt }],
     });
 
