@@ -4,11 +4,11 @@ import { inngest } from '@/lib/inngest';
 import {
   SUPABASE_TABLES,
 
-export const dynamic = 'force-dynamic';
   INNGEST_EVENTS,
   DOCUMENT_TYPES,
 } from 'shared';
 
+export const dynamic = 'force-dynamic';
 // NOTE: Payment gateway integration is pending.
 // The invoice record is created with status='draft' and no gateway IDs.
 // Wire up a payment provider and uncomment the relevant steps below.

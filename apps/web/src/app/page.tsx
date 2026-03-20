@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+
 export default function Home() {
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>

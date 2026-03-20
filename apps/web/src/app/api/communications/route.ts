@@ -5,11 +5,12 @@ import { inngest } from '@/lib/inngest';
 import {
   SUPABASE_TABLES,
 
-export const dynamic = 'force-dynamic';
   INNGEST_EVENTS,
   NOTIFICATION_STATUS,
   NOTIFICATION_TYPES,
 } from 'shared';
+
+export const dynamic = 'force-dynamic';
 
 // Server-only admin client — never expose service role key to browser
 function getAdminClient() {
