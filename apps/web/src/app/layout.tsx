@@ -1,24 +1,19 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { ReactNode } from 'react';
+import './globals.css';
 
-export const metadata: Metadata = {
-  title: "Nicodemus - Teacher Dashboard",
-  description: "Enterprise Educational AI Suite",
+export const metadata = {
+  title: 'Nicodemus',
+  description: 'Enterprise Educational AI Suite',
 };
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="antialiased" suppressHydrationWarning>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

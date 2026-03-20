@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback } from 'react';
 import { DOCUMENT_TYPE_LABELS, type DocumentType } from 'shared';
