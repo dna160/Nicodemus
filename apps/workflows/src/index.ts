@@ -505,17 +505,106 @@ export const handleAbsenceCreated = inngest.createFunction(
 );
 
 // ============================================
+// Phase 2 Workflow 7: Enrollment Triggered
+// ============================================
+// When a prospect is enrolled:
+// 1. Log the enrollment
+// 2. (Payment gateway steps go here once a provider is chosen)
+
+export const handleEnrollmentTriggered = inngest.createFunction(
+  {
+    id: 'enrollment-triggered-handler',
+    name: 'Handle Student Enrollment',
+  },
+  { event: INNGEST_EVENTS.ENROLLMENT_TRIGGERED },
+  async ({ event, step }) => {
+    const {
+      studentId,
+      invoiceId,
+      childName,
+      email,
+      gradeLevel,
+      totalAmountCents,
+    } = event.data;
+
+    // Step 1: Log enrollment
+    await step.run('log-enrollment', async () => {
+      console.log(
+        `[ENROLLMENT] ${childName} (grade ${gradeLevel}) enrolled. ` +
+        `Fee total: $${(totalAmountCents / 100).toFixed(2)} → ${email}. ` +
+        `Invoice ID: ${invoiceId} (status: draft — payment gateway not yet configured).`
+      );
+    });
+
+    // TODO: Step 2 — once a payment gateway is chosen:
+    //   - Create customer + invoice via gateway API
+    //   - Update invoice status to 'sent'
+    //   - Send payment link to parent via email
+
+    return { studentId, invoiceId, status: 'enrollment_logged' };
+  }
+);
+
+// NOTE: handleStripePaymentSucceeded removed — payment gateway TBD.
+// Restore (or replace with equivalent) once a provider is selected.
+
+// ============================================
+// Phase 2 Workflow 9: Missing Docs Cron (Daily)
+// ============================================
+// Every day at 8AM UTC, check for students with pending
+// onboarding documents older than 7 days and trigger reminders.
+
+export const missingDocsCron = inngest.createFunction(
+  {
+    id: 'missing-docs-cron',
+    name: 'Daily Missing Document Reminders',
+  },
+  { cron: '0 8 * * *' }, // Daily at 8:00 AM UTC
+  async ({ step }) => {
+    const result = await step.run('trigger-reminder-api', async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL}/api/onboarding/reminder-missing-docs`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-internal-api-key': process.env.INTERNAL_API_KEY ?? '',
+            },
+            body: JSON.stringify({}),
+          }
+        );
+        return res.json();
+      } catch (e: any) {
+        console.error('Missing docs cron failed:', e.message);
+        return { remindersQueued: 0, error: e.message };
+      }
+    });
+
+    return {
+      weekday: new Date().toLocaleDateString('en-US', { weekday: 'long' }),
+      remindersQueued: result.remindersQueued ?? 0,
+    };
+  }
+);
+
+// ============================================
 // Expose Inngest functions to Next.js API
 // ============================================
 
 export const handler = serve({
   client: inngest,
   functions: [
+    // Phase 1
     handleConceptStruggle,
     handleCurriculumPublished,
     handleMilestoneAchieved,
     handleParentNotificationApproved,
     weeklyParentDigest,
     handleAbsenceCreated,
+    // Phase 2
+    handleEnrollmentTriggered,
+    missingDocsCron,
+    // handleStripePaymentSucceeded — restore when payment gateway is configured
   ],
 });

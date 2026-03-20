@@ -1,6 +1,7 @@
 // Shared constants used across all apps
 
 export const SUPABASE_TABLES = {
+  // Phase 1 - Core
   USERS: 'users',
   STUDENTS: 'students',
   TEACHERS: 'teachers',
@@ -22,9 +23,21 @@ export const SUPABASE_TABLES = {
   SUBSTITUTE_FEEDBACK: 'substitute_feedback',
   INVENTORY: 'inventory',
   INVENTORY_USAGE: 'inventory_usage',
+  // Phase 2 - Admissions CRM
+  PROSPECTIVE_STUDENTS: 'prospective_students',
+  INQUIRY_FORMS: 'inquiry_forms',
+  GLOBAL_ADMINS: 'global_admins',
+  FEE_SCHEDULE: 'fee_schedule',
+  // Phase 2 - Financial
+  STRIPE_CUSTOMERS: 'stripe_customers',
+  INVOICES: 'invoices',
+  PAYMENT_RECEIPTS: 'payment_receipts',
+  // Phase 2 - Onboarding
+  ONBOARDING_CHECKLIST: 'onboarding_checklist',
 } as const;
 
 export const INNGEST_EVENTS = {
+  // Phase 1 - Academic
   CONCEPT_STRUGGLE: 'concept/struggle',
   CURRICULUM_PUBLISHED: 'curriculum/published',
   MILESTONE_ACHIEVED: 'student/milestone_achieved',
@@ -36,16 +49,82 @@ export const INNGEST_EVENTS = {
   SUBSTITUTE_INVITATION_SENT: 'erp/substitute_invitation_sent',
   SUBSTITUTE_ACCEPTED: 'erp/substitute_accepted',
   SUBSTITUTE_ASSIGNMENT_COMPLETED: 'erp/substitute_assignment_completed',
+  // Phase 2 - Admissions CRM
+  INQUIRY_RECEIVED: 'admissions/inquiry_received',
+  WELCOME_EMAIL_APPROVED: 'admissions/welcome_email_approved',
+  PROSPECT_STAGE_CHANGED: 'admissions/prospect_stage_changed',
+  // Phase 2 - Enrollment & Billing
+  ENROLLMENT_TRIGGERED: 'enrollment/triggered',
+  STRIPE_PAYMENT_SUCCEEDED: 'stripe/payment_succeeded',
+  STRIPE_PAYMENT_FAILED: 'stripe/payment_failed',
+  // Phase 2 - Onboarding
+  DOCUMENT_SUBMITTED: 'onboarding/document_submitted',
+  MISSING_DOCS_CRON: 'onboarding/missing_docs_cron',
 } as const;
 
 export const MODAL_FUNCTIONS = {
+  // Phase 1
   GENERATE_CURRICULUM: 'generate_curriculum',
   GENERATE_LESSON_VARIANTS: 'generate_lesson_variants',
   GRADE_ASSIGNMENT: 'grade_assignment',
   SYNTHESIZE_CLASS_INSIGHTS: 'synthesize_class_insights',
   GENERATE_PARENT_EMAIL: 'generate_parent_email',
   GENERATE_SUB_LESSON_PLAN: 'generate_sub_lesson_plan',
+  // Phase 2
+  GENERATE_ADMISSIONS_WELCOME: 'generate_admissions_welcome',
+  GENERATE_ONBOARDING_REMINDER: 'generate_onboarding_reminder',
+  GENERATE_INVOICE_EMAIL: 'generate_invoice_email',
 } as const;
+
+// Phase 2 - Admissions pipeline stages
+export const PROSPECT_STAGES = {
+  INQUIRY_RECEIVED: 'inquiry_received',
+  TOUR_SCHEDULED: 'tour_scheduled',
+  WAITLISTED: 'waitlisted',
+  ENROLLED: 'enrolled',
+  CHURNED: 'churned',
+} as const;
+
+export type ProspectStage = typeof PROSPECT_STAGES[keyof typeof PROSPECT_STAGES];
+
+export const PROSPECT_STAGE_LABELS: Record<ProspectStage, string> = {
+  inquiry_received: 'Inquiry Received',
+  tour_scheduled: 'Tour Scheduled',
+  waitlisted: 'Waitlisted',
+  enrolled: 'Enrolled',
+  churned: 'Churned',
+};
+
+// Phase 2 - Document types for onboarding checklist
+export const DOCUMENT_TYPES = {
+  MEDICAL_RECORDS: 'medical_records',
+  EMERGENCY_CONTACTS: 'emergency_contacts',
+  PROOF_OF_RESIDENCY: 'proof_of_residency',
+  IMMUNIZATION_RECORDS: 'immunization_records',
+  BIRTH_CERTIFICATE: 'birth_certificate',
+} as const;
+
+export type DocumentType = typeof DOCUMENT_TYPES[keyof typeof DOCUMENT_TYPES];
+
+export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+  medical_records: 'Medical Records',
+  emergency_contacts: 'Emergency Contacts',
+  proof_of_residency: 'Proof of Residency',
+  immunization_records: 'Immunization Records',
+  birth_certificate: 'Birth Certificate',
+};
+
+// Phase 2 - Invoice statuses
+export const INVOICE_STATUS = {
+  DRAFT: 'draft',
+  SENT: 'sent',
+  PAID: 'paid',
+  OVERDUE: 'overdue',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+} as const;
+
+export type InvoiceStatus = typeof INVOICE_STATUS[keyof typeof INVOICE_STATUS];
 
 // ERP: Substitute assignment statuses
 export const SUBSTITUTE_ASSIGNMENT_STATUS = {

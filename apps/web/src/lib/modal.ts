@@ -245,7 +245,7 @@ export const modal = {
         topic: params.topic,
         subject: params.subject,
         grade_level: params.gradeLevel,
-        grade_context: gradeContext, // Grade-level aware guidance
+        grade_context: gradeContext,
         grading_system: params.gradingSystem,
         curriculum_context: params.curriculumContext,
         apiKey: params.apiKey,
@@ -253,5 +253,122 @@ export const modal = {
     });
     if (!response.ok) throw new Error(`Modal generate_custom_homework failed: ${response.statusText}`);
     return response.json();
-  }
+  },
+
+  // ============================================================
+  // Phase 2: Admissions — Personalized welcome email for prospects
+  // ============================================================
+
+  async generateAdmissionsWelcome(params: {
+    parentName: string;
+    childName: string;
+    gradeInterested: string;
+    schoolName: string;
+    inquiryResponses: Array<{ question: string; answer: string }>;
+    suggestedTourTimes?: string[];
+    apiKey?: string;
+  }): Promise<{ subject: string; body: string }> {
+    const response = await fetch(`${process.env.MODAL_API_URL}/generate_admissions_welcome`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.MODAL_TOKEN_SECRET}`,
+      },
+      body: JSON.stringify({
+        parent_name: params.parentName,
+        child_name: params.childName,
+        grade_interested: params.gradeInterested,
+        school_name: params.schoolName,
+        inquiry_responses: params.inquiryResponses,
+        suggested_tour_times: params.suggestedTourTimes ?? [],
+        apiKey: params.apiKey,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Modal admissions welcome failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  // ============================================================
+  // Phase 2: Onboarding — Reminder email for missing documents
+  // ============================================================
+
+  async generateOnboardingReminder(params: {
+    parentName: string;
+    childName: string;
+    schoolName: string;
+    missingDocuments: string[]; // Human-readable doc names
+    enrollmentDate: string;
+    portalUrl?: string;
+    apiKey?: string;
+  }): Promise<{ subject: string; body: string }> {
+    const response = await fetch(`${process.env.MODAL_API_URL}/generate_onboarding_reminder`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.MODAL_TOKEN_SECRET}`,
+      },
+      body: JSON.stringify({
+        parent_name: params.parentName,
+        child_name: params.childName,
+        school_name: params.schoolName,
+        missing_documents: params.missingDocuments,
+        enrollment_date: params.enrollmentDate,
+        portal_url: params.portalUrl ?? '',
+        apiKey: params.apiKey,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Modal onboarding reminder failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  // ============================================================
+  // Phase 2: Financial — Invoice notification email with fee breakdown
+  // ============================================================
+
+  async generateInvoiceEmail(params: {
+    parentName: string;
+    childName: string;
+    schoolName: string;
+    feeBreakdown: {
+      registration_fee_cents: number;
+      monthly_tuition_cents: number;
+      activity_fees_cents: number;
+    };
+    totalAmountCents: number;
+    paymentLink: string;
+    dueDate: string;
+    apiKey?: string;
+  }): Promise<{ subject: string; body: string }> {
+    const response = await fetch(`${process.env.MODAL_API_URL}/generate_invoice_email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.MODAL_TOKEN_SECRET}`,
+      },
+      body: JSON.stringify({
+        parent_name: params.parentName,
+        child_name: params.childName,
+        school_name: params.schoolName,
+        fee_breakdown: params.feeBreakdown,
+        total_amount_cents: params.totalAmountCents,
+        payment_link: params.paymentLink,
+        due_date: params.dueDate,
+        apiKey: params.apiKey,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Modal invoice email failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
 };
