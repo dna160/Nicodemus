@@ -11,6 +11,7 @@ import {
 import { NicodemusAiModal } from '@/components/nicodemus-ai-modal';
 import { ScrollFade } from '@/components/scroll-fade';
 import { NotificationDropdown } from '@/components/notification-dropdown';
+import { SearchModal } from '@/components/search-modal';
 
 // ============================================================
 // Types
@@ -1886,9 +1887,10 @@ function HomeView({ teacherId }: { teacherId: string }) {
 // ============================================================
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>('home');
-  const [userId, setUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab]     = useState<Tab>('home');
+  const [userId, setUserId]           = useState<string | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen]   = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -1896,11 +1898,22 @@ export default function Dashboard() {
       if (user) {
         setUserId(user.id);
       } else {
-        // For demo: use a test teacher ID
         setUserId('00000000-0000-0000-0000-000000000001');
       }
     };
     getUser();
+  }, []);
+
+  // Cmd+K / Ctrl+K to open search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -1942,7 +1955,11 @@ export default function Dashboard() {
 
         {/* Right side */}
         <div className="flex items-center gap-4">
-          <button className="text-black dark:text-white hover:text-black dark:hover:text-white transition-colors">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors"
+            aria-label="Search"
+          >
             <Search size={18} />
           </button>
           <NotificationDropdown userId={userId} userRole="teacher" />
@@ -2006,6 +2023,15 @@ export default function Dashboard() {
 
       {/* AI Modal */}
       {isAiModalOpen && <NicodemusAiModal onClose={() => setIsAiModalOpen(false)} />}
+
+      {/* Search Modal */}
+      <SearchModal
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        userId={userId}
+        userRole="teacher"
+        onNavigate={(tab) => { setActiveTab(tab as Tab); setIsSearchOpen(false); }}
+      />
     </div>
   );
 }

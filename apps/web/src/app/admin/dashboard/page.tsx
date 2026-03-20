@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { NicodemusAiModal } from '@/components/nicodemus-ai-modal';
 import { NotificationDropdown } from '@/components/notification-dropdown';
+import { SearchModal } from '@/components/search-modal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1107,6 +1108,7 @@ export default function AdminDashboard() {
   const [userId, setUserId]             = useState<string>('00000000-0000-0000-0000-000000000002');
   const [activatedTabs, setActivatedTabs] = useState<Set<Tab>>(new Set(['overview']));
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen]   = useState(false);
 
   // Shared state so Admissions + Finance can reuse overview data
   const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
@@ -1118,6 +1120,18 @@ export default function AdminDashboard() {
       if (meta?.school_id) setSchoolId(meta.school_id);
       else if (data?.user?.app_metadata?.school_id) setSchoolId(data.user.app_metadata.school_id);
     });
+  }, []);
+
+  // Cmd+K / Ctrl+K to open search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const handleTabChange = (tab: Tab) => {
@@ -1162,7 +1176,11 @@ export default function AdminDashboard() {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors"
+            aria-label="Search"
+          >
             <Search size={18} />
           </button>
           <NotificationDropdown userId={userId} userRole="admin" />
@@ -1236,6 +1254,15 @@ export default function AdminDashboard() {
 
       {/* AI Modal */}
       {isAiModalOpen && <NicodemusAiModal onClose={() => setIsAiModalOpen(false)} />}
+
+      {/* Search Modal */}
+      <SearchModal
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        userId={userId}
+        userRole="admin"
+        onNavigate={(tab) => { handleTabChange(tab as Tab); setIsSearchOpen(false); }}
+      />
     </div>
   );
 }

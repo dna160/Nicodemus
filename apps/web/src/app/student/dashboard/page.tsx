@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { DOCUMENT_TYPE_LABELS, type DocumentType } from 'shared';
 import { DocumentUploadForm } from '@/components/document-upload-form';
 import { NotificationDropdown } from '@/components/notification-dropdown';
+import { SearchModal } from '@/components/search-modal';
 import {
   Home, BookOpen, BarChart2, FileText, Bell,
   Search, Mic, ChevronRight, CheckSquare,
@@ -1123,6 +1124,7 @@ export default function StudentDashboardPage() {
   const [activeTab, setActiveTab]     = useState<Tab>('home');
   const [profileLoading, setProfileLoading] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen]   = useState(false);
+  const [isSearchOpen, setIsSearchOpen]     = useState(false);
 
   // Auth — fall back to demo mode when no session
   useEffect(() => {
@@ -1149,6 +1151,18 @@ export default function StudentDashboardPage() {
   const initials = profile?.name
     ? profile.name.split(' ').map((p) => p[0]).slice(0, 2).join('')
     : '?';
+
+  // Cmd+K / Ctrl+K to open search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] dark:bg-gray-950 font-sans">
@@ -1180,7 +1194,11 @@ export default function StudentDashboardPage() {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-black dark:text-white transition-colors"
+            aria-label="Search"
+          >
             <Search size={18} />
           </button>
           <NotificationDropdown userId={studentId} userRole="student" />
@@ -1251,6 +1269,15 @@ export default function StudentDashboardPage() {
 
       {/* AI Modal */}
       {isAiModalOpen && <NicodemusAiModal onClose={() => setIsAiModalOpen(false)} />}
+
+      {/* Search Modal */}
+      <SearchModal
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        userId={studentId}
+        userRole="student"
+        onNavigate={(tab) => { setActiveTab(tab as Tab); setIsSearchOpen(false); }}
+      />
     </div>
   );
 }
