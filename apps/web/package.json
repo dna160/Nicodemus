@@ -19,8 +19,8 @@
     "inngest": "^3.52.7",
     "lucide-react": "^0.293.0",
     "next": "15.1.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "shadcn-ui": "^0.8.0",
     "shared": "workspace:*",
     "tailwindcss": "^3.4.0"
