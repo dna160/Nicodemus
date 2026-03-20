@@ -1,5 +1,5 @@
 {
+  "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "export NODE_ENV=production && cd packages/shared && pnpm run build && cd ../../apps/web && pnpm run build",
-  "outputDirectory": "apps/web/.next"
+  "buildCommand": "export NODE_ENV=production && cd packages/shared && pnpm run build && cd ../../apps/web && pnpm run build"
 }
