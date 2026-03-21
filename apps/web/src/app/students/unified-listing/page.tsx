@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 import {
   StudentDetailTimeline,
   type UnifiedStudent,
@@ -62,10 +63,40 @@ export default function UnifiedStudentListingPage() {
 
   const [selectedStudent, setSelectedStudent] = useState<UnifiedStudent | null>(null);
 
-  // In a real deployment, schoolId would come from auth context
-  const schoolId = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('schoolId') ?? ''
-    : '';
+  const [schoolId, setSchoolId] = useState<string>('');
+
+  // Get schoolId from URL params or auth context
+  useEffect(() => {
+    const getSchoolId = async () => {
+      // First try URL params
+      if (typeof window !== 'undefined') {
+        const urlSchoolId = new URLSearchParams(window.location.search).get('schoolId');
+        if (urlSchoolId) {
+          setSchoolId(urlSchoolId);
+          return;
+        }
+      }
+
+      // Fall back to current user's school_id
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.id) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('school_id')
+            .eq('id', data.user.id)
+            .single();
+          if (userData?.school_id) {
+            setSchoolId(userData.school_id);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to get schoolId:', err);
+      }
+    };
+
+    getSchoolId();
+  }, []);
 
   const fetchStudents = useCallback(async () => {
     setLoading(true);
@@ -89,8 +120,10 @@ export default function UnifiedStudentListingPage() {
   }, [schoolId, gradeFilter, search, page]);
 
   useEffect(() => {
-    fetchStudents();
-  }, [fetchStudents]);
+    if (schoolId) {
+      fetchStudents();
+    }
+  }, [schoolId, gradeFilter, search, page]);
 
   // Client-side sort
   const sorted = [...students].sort((a, b) => {
