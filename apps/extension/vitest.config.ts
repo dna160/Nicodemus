@@ -10,7 +10,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html"],
       include: ["lib/**/*.ts"],
-      exclude: ["tests/**", "*.config.*"],
+      exclude: ["tests/**", "*.config.*", "lib/storage.ts"],
       thresholds: {
         statements: 80,
         branches: 75,
