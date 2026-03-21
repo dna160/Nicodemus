@@ -392,7 +392,7 @@ function ProspectDetailPanel({
 
 export default function AdmissionsPipelinePage() {
   const [adminId, setAdminId] = useState('00000000-0000-0000-0000-000000000001');
-  const [schoolId, setSchoolId] = useState('00000000-0000-0000-0000-000000000010');
+  const [schoolId, setSchoolId] = useState('00000000-0000-0000-0000-000000000001');
   const [grouped, setGrouped] = useState<Record<ProspectStage, ProspectCard[]>>({
     inquiry_received: [],
     tour_scheduled: [],
@@ -421,8 +421,16 @@ export default function AdmissionsPipelinePage() {
   }, [schoolId, search]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.id) setAdminId(data.user.id);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user?.id) {
+        setAdminId(data.user.id);
+        const { data: userData } = await supabase
+          .from('users')
+          .select('school_id')
+          .eq('id', data.user.id)
+          .single();
+        if (userData?.school_id) setSchoolId(userData.school_id);
+      }
     });
   }, []);
 
