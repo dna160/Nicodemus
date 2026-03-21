@@ -13,6 +13,10 @@
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"]
+    },
     "lib": [
       "ES2020",
       "DOM",

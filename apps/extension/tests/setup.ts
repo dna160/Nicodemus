@@ -15,8 +15,8 @@ const mockStorageLocal = {
       return { [keys]: null };
     }
     if (Array.isArray(keys)) {
-      const result = {};
-      keys.forEach((key) => {
+      const result: Record<string, null> = {};
+      keys.forEach((key: string) => {
         result[key] = null;
       });
       return result;
@@ -38,8 +38,8 @@ const mockStorageSession = {
       return { [keys]: null };
     }
     if (Array.isArray(keys)) {
-      const result = {};
-      keys.forEach((key) => {
+      const result: Record<string, null> = {};
+      keys.forEach((key: string) => {
         result[key] = null;
       });
       return result;
@@ -121,13 +121,13 @@ if (typeof global.crypto === "undefined") {
 }
 
 if (typeof global.crypto.randomUUID === "undefined") {
-  global.crypto.randomUUID = vi.fn(() => {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+  global.crypto.randomUUID = vi.fn(() =>
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0;
       const v = c === "x" ? r : (r & 0x3) | 0x8;
       return v.toString(16);
-    });
-  });
+    })
+  ) as unknown as () => `${string}-${string}-${string}-${string}-${string}`;
 }
 
 // Utility to get and reset mocks
