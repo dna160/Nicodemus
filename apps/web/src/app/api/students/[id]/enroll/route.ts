@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { inngest } from '@/lib/inngest';
 import {
   SUPABASE_TABLES,
-
   INNGEST_EVENTS,
   DOCUMENT_TYPES,
 } from 'shared';
@@ -121,7 +119,57 @@ export async function POST(
 
     if (studentError) throw studentError;
 
-    // 4. Update prospect stage to 'enrolled' + link to new student
+    // 4. Create parent user + parent record + link to student
+    try {
+      // Parent email: use a unique parent-scoped email to avoid conflict with student record
+      const parentEmail = prospect.email.includes('+parent')
+        ? prospect.email
+        : prospect.email.replace('@', '+parent@');
+
+      // Upsert parent user (idempotent if already exists)
+      let parentUserId: string | null = null;
+      const { data: existingParentUser } = await supabaseAdmin
+        .from(SUPABASE_TABLES.USERS)
+        .select('id')
+        .eq('email', parentEmail)
+        .eq('school_id', prospect.school_id)
+        .single();
+
+      if (existingParentUser) {
+        parentUserId = existingParentUser.id;
+      } else {
+        const { data: newParentUser, error: parentUserError } = await supabaseAdmin
+          .from(SUPABASE_TABLES.USERS)
+          .insert({
+            school_id: prospect.school_id,
+            email: parentEmail,
+            name: prospect.parent_name,
+            role: 'parent',
+          })
+          .select()
+          .single();
+        if (!parentUserError && newParentUser) parentUserId = newParentUser.id;
+      }
+
+      if (parentUserId) {
+        // Upsert parents record
+        await supabaseAdmin
+          .from(SUPABASE_TABLES.PARENTS)
+          .upsert({ id: parentUserId, phone: prospect.phone }, { onConflict: 'id' });
+
+        // Link student ↔ parent
+        await supabaseAdmin
+          .from(SUPABASE_TABLES.STUDENT_PARENTS)
+          .upsert(
+            { student_id: newStudent.id, parent_id: parentUserId, relationship: 'parent', primary_contact: true },
+            { onConflict: 'student_id,parent_id' }
+          );
+      }
+    } catch (parentError: any) {
+      console.warn('Parent record creation failed (non-fatal):', parentError.message);
+    }
+
+    // 5. Update prospect stage to 'enrolled' + link to new student
     await supabaseAdmin
       .from(SUPABASE_TABLES.PROSPECTIVE_STUDENTS)
       .update({
@@ -178,6 +226,7 @@ export async function POST(
 
     // 10. Trigger Inngest enrollment workflow
     try {
+      const { inngest } = await import('@/lib/inngest');
       await inngest.send({
         name: INNGEST_EVENTS.ENROLLMENT_TRIGGERED,
         data: {

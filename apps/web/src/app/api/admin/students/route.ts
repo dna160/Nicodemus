@@ -16,7 +16,7 @@ function getAdminClient() {
   );
 }
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 100;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -74,24 +74,31 @@ export async function GET(req: NextRequest) {
 
   const filteredUsers = studentUsers.filter((u) => filteredIds.includes(u.id));
 
-  // Fetch parent info via student_parents join
-  const { data: studentParents } = await supabase
+  // Fetch parent info: step 1 — get student→parent links
+  const { data: spLinks } = await supabase
     .from('student_parents')
-    .select(`
-      student_id,
-      parents!inner ( id, users!inner ( name, email ) )
-    `)
+    .select('student_id, parent_id')
     .in('student_id', filteredIds);
 
   const parentMap: Record<string, { name: string; email: string }> = {};
-  for (const sp of studentParents ?? []) {
-    const parent = (sp as any).parents;
-    const parentUser = parent?.users;
-    if (parentUser && !parentMap[sp.student_id]) {
-      parentMap[sp.student_id] = {
-        name: parentUser.name,
-        email: parentUser.email,
-      };
+  const parentIds = [...new Set((spLinks ?? []).map((sp) => sp.parent_id))];
+
+  if (parentIds.length > 0) {
+    // step 2 — get parent user details
+    const { data: parentUsers } = await supabase
+      .from('users')
+      .select('id, name, email')
+      .in('id', parentIds);
+
+    const parentUserMap = Object.fromEntries((parentUsers ?? []).map((u) => [u.id, u]));
+
+    for (const sp of spLinks ?? []) {
+      if (!parentMap[sp.student_id] && parentUserMap[sp.parent_id]) {
+        parentMap[sp.student_id] = {
+          name: parentUserMap[sp.parent_id].name,
+          email: parentUserMap[sp.parent_id].email,
+        };
+      }
     }
   }
 

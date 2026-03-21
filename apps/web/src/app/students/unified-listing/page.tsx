@@ -48,7 +48,7 @@ function DistractionBadge({ value }: { value?: number | null }) {
 // ============================================================
 
 const GRADE_OPTIONS = ['All', 'K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 25;
 
 export default function UnifiedStudentListingPage() {
   const [students, setStudents] = useState<UnifiedStudent[]>([]);

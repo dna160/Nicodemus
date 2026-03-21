@@ -1,0 +1,80 @@
+name: Extension CI
+
+on:
+  push:
+    branches: [main, staging]
+    paths: ['apps/extension/**']
+  pull_request:
+    branches: [main, staging]
+    paths: ['apps/extension/**']
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/extension
+      - run: pnpm type-check
+        working-directory: apps/extension
+      - run: pnpm lint
+        working-directory: apps/extension
+
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/extension
+      - run: pnpm test:coverage
+        working-directory: apps/extension
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/extension/coverage/
+          retention-days: 7
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      PLASMO_PUBLIC_SUPABASE_URL: ${{ secrets.PLASMO_PUBLIC_SUPABASE_URL }}
+      PLASMO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PLASMO_PUBLIC_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+        working-directory: apps/extension
+      - run: pnpm build
+        working-directory: apps/extension
+      - run: pnpm package
+        working-directory: apps/extension
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-package
+          path: apps/extension/build/chrome-mv3-prod.zip
+          retention-days: 30

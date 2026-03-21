@@ -848,25 +848,54 @@ function CreateStudentModal({ schoolId, onClose, onCreated }: {
 }
 
 // ── Pipeline Card ─────────────────────────────────────────────────────────────
-function PipelineCard({ student, stages, onMove }: {
+function PipelineCard({ student, stages, onMove, adminId }: {
   student: ProspectStudent;
   stages: typeof PIPELINE_STAGES;
   onMove: (id: string, stage: PipelineStageKey) => void;
+  adminId: string;
 }) {
   const [moving, setMoving] = React.useState(false);
+  const [moveError, setMoveError] = React.useState<string | null>(null);
   const currentIdx = stages.findIndex(s => s.key === student.current_stage);
   const initials = student.child_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   async function move(stage: PipelineStageKey) {
     setMoving(true);
+    setMoveError(null);
     try {
-      const res = await fetch('/api/admin/students/pipeline', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: student.id, stage }),
-      });
-      const json = await res.json();
-      if (json.success) onMove(student.id, stage);
+      if (stage === 'enrolled') {
+        // Full enrollment: creates user + student records in the DB
+        const res = await fetch(`/api/students/${student.id}/enroll`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminId,
+            gradeLevel: student.grade_interested,
+            feeChoices: { registration_fee_cents: 0, monthly_tuition_cents: 0, activity_fees_cents: 0 },
+          }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          onMove(student.id, stage);
+        } else {
+          // Already enrolled is fine — just update the UI stage
+          if (res.status === 409) {
+            onMove(student.id, stage);
+          } else {
+            setMoveError(json.error ?? 'Enrollment failed');
+          }
+        }
+      } else {
+        // Non-enrollment stage changes just update the pipeline stage
+        const res = await fetch('/api/admin/students/pipeline', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId: student.id, stage }),
+        });
+        const json = await res.json();
+        if (json.success) onMove(student.id, stage);
+        else setMoveError(json.error ?? 'Stage update failed');
+      }
     } finally {
       setMoving(false);
     }
@@ -902,6 +931,11 @@ function PipelineCard({ student, stages, onMove }: {
         {student.location && <p className="truncate">📍 {student.location}</p>}
       </div>
 
+      {/* Move error */}
+      {moveError && (
+        <p className="text-xs text-red-500 dark:text-red-400">{moveError}</p>
+      )}
+
       {/* Move buttons */}
       <div className="flex gap-1 pt-1 flex-wrap">
         {currentIdx > 0 && (
@@ -912,8 +946,12 @@ function PipelineCard({ student, stages, onMove }: {
         )}
         {currentIdx < stages.length - 1 && (
           <button onClick={() => move(stages[currentIdx + 1].key)} disabled={moving}
-            className="text-xs px-2 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors disabled:opacity-40 ml-auto">
-            {stages[currentIdx + 1].label} →
+            className={`text-xs px-2 py-1 rounded-lg transition-colors disabled:opacity-40 ml-auto ${
+              stages[currentIdx + 1].key === 'enrolled'
+                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800'
+                : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800'
+            }`}>
+            {moving && stages[currentIdx + 1].key === 'enrolled' ? 'Enrolling…' : `${stages[currentIdx + 1].label} →`}
           </button>
         )}
       </div>
@@ -922,7 +960,7 @@ function PipelineCard({ student, stages, onMove }: {
 }
 
 // ── AdmissionsTab ─────────────────────────────────────────────────────────────
-function AdmissionsTab({ schoolId }: { schoolId: string }) {
+function AdmissionsTab({ schoolId, adminId }: { schoolId: string; adminId: string }) {
   const [students, setStudents] = React.useState<ProspectStudent[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [showCreate, setShowCreate] = React.useState(false);
@@ -989,7 +1027,7 @@ function AdmissionsTab({ schoolId }: { schoolId: string }) {
                   </div>
                 ) : (
                   cards.map(s => (
-                    <PipelineCard key={s.id} student={s} stages={PIPELINE_STAGES} onMove={handleMove} />
+                    <PipelineCard key={s.id} student={s} stages={PIPELINE_STAGES} onMove={handleMove} adminId={adminId} />
                   ))
                 )}
               </div>
@@ -1244,7 +1282,7 @@ export default function AdminDashboard() {
             <StudentsTab schoolId={schoolId} />
           )}
           {activeTab === 'admissions' && activatedTabs.has('admissions') && (
-            <AdmissionsTab schoolId={schoolId} />
+            <AdmissionsTab schoolId={schoolId} adminId={userId} />
           )}
           {activeTab === 'finance' && activatedTabs.has('finance') && (
             <FinanceTab overviewData={overviewData} />

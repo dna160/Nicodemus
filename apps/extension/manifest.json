@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Nicodemus Student Edge",
+  "version": "1.0.0",
+  "description": "Browser extension for tracking student focus and productivity",
+  "permissions": [
+    "tabs",
+    "storage",
+    "idle",
+    "alarms",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Nicodemus Student Edge"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contents/nudge.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "icons": {
+    "16": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect fill='%233b82f6' width='16' height='16' rx='2'/><text x='8' y='12' font-size='10' font-weight='bold' text-anchor='middle' fill='white'>NE</text></svg>",
+    "48": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect fill='%233b82f6' width='48' height='48' rx='6'/><text x='24' y='36' font-size='28' font-weight='bold' text-anchor='middle' fill='white'>NE</text></svg>",
+    "128": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><rect fill='%233b82f6' width='128' height='128' rx='16'/><text x='64' y='96' font-size='72' font-weight='bold' text-anchor='middle' fill='white'>NE</text></svg>"
+  }
+}
