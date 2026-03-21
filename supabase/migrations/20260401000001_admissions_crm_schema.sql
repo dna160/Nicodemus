@@ -42,11 +42,16 @@ CREATE TABLE IF NOT EXISTS fee_schedule (
 CREATE TABLE IF NOT EXISTS prospective_students (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+  student_id TEXT UNIQUE,                  -- Generated ID e.g. NIC-JS2026-AB12
   parent_name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,
   child_name TEXT NOT NULL,
   grade_interested TEXT NOT NULL,
+  date_of_birth DATE,
+  location TEXT,
+  profile_picture_url TEXT,
+  curriculum_id UUID REFERENCES lessons(id) ON DELETE SET NULL,
   current_stage TEXT NOT NULL DEFAULT 'inquiry_received'
     CHECK (current_stage IN (
       'inquiry_received',
@@ -65,10 +70,10 @@ CREATE TABLE IF NOT EXISTS prospective_students (
       'other'
     )),
   tour_scheduled_at TIMESTAMP WITH TIME ZONE,
-  notes TEXT, -- Admin-only internal notes
+  notes TEXT,
   last_contact_at TIMESTAMP WITH TIME ZONE,
   parent_communications_sent INTEGER NOT NULL DEFAULT 0,
-  enrolled_student_id UUID REFERENCES users(id) ON DELETE SET NULL, -- Set on conversion
+  enrolled_student_id UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
