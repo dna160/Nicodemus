@@ -14,14 +14,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get('schoolId');
 
-    const query = supabaseAdmin
+    let query = supabaseAdmin
       .from(SUPABASE_TABLES.PROSPECTIVE_STUDENTS)
-      .select('id, child_name, parent_name, email, phone, grade_interested, current_stage, date_of_birth, location, student_id, profile_picture_url, curriculum_id, created_at, last_contact_at')
-      .order('created_at', { ascending: false });
+      .select('id, child_name, parent_name, email, phone, grade_interested, current_stage, date_of_birth, location, student_id, profile_picture_url, curriculum_id, created_at, last_contact_at');
 
-    if (schoolId) query.eq('school_id', schoolId);
+    if (schoolId) query = query.eq('school_id', schoolId);
 
-    const { data, error } = await query;
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
 
     return NextResponse.json({ success: true, students: data ?? [] });
